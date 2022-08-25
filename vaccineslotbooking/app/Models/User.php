@@ -18,9 +18,14 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
-        'name',
+        'first_name',
+        'first_name',
+        'ph_no',
+        'adhaar_no',
+        'address',
         'email',
         'password',
+        'role',
     ];
 
     /**
@@ -41,4 +46,8 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+    public function Booking()
+    {
+        return $this->hasOne(Booking::class);
+    }
 }
