@@ -26,4 +26,8 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::post('register', [UserController::class, 'register']);
 Route::post('login', [UserController::class, 'login']);
 Route::resource('vaccine',VaccineController::class);
+Route::post('vaccine/checkAvailablity',[VaccineController::class,'checkAvailablity']);
+Route::post('vaccine/store',[VaccineController::class,'store']);
+
+
 

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Booking;
+use Illuminate\Support\Facades\Validator;
 
 class VaccineController extends Controller
 {
@@ -16,8 +17,8 @@ class VaccineController extends Controller
     {
         //
         // dd('hii');
-        $bookings=Booking::all();
-        return response()->json(['Bookings'=>$bookings,'Status'=>'Success'],200);
+        $bookings = Booking::all();
+        return response()->json(['Bookings' => $bookings, 'Status' => 'Success'], 200);
     }
 
     /**
@@ -31,7 +32,19 @@ class VaccineController extends Controller
     }
     public function checkAvailablity(request $request)
     {
-        
+        $validator = Validator::make($request->all(), [
+            'date' => 'required|date',
+        ], [
+            'date.required' => 'Please select a date',
+
+        ]);
+        if ($validator->fails())
+            return response()->json(['errors' => $validator->errors()], 400);
+        $date = $request->date;
+        $bookings = Booking::where('booking_date', $date)->get()->count();
+        if ($bookings >= 5)
+            return response()->json(['Error' => 'No Slots Available For this date! Select Another Date', 'Status' => 'Fail'], 400);
+        return response()->json(['Status' => 'Proceed','Slots Remaining'=> 5-$bookings]);
     }
 
     /**
@@ -43,6 +56,18 @@ class VaccineController extends Controller
     public function store(Request $request)
     {
         //
+        $validator = Validator::make($request->all(), [
+            'adhaar_no' => 'required',
+            'ph_no' => 'required',
+            'address' => 'required',
+            'last_name' => 'required',
+            'date' => 'required'
+        ]);
+        if ($validator->fails())
+            return response()->json(['errors' => $validator->errors()], 400);
+        $booking = new Booking();
+        $booking->date=$request->date;
+        return response()->json(['status'=>'success'],200);
     }
 
     /**
