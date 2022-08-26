@@ -20,14 +20,19 @@ use App\Http\Controllers\VaccineController;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+// Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+//     return $request->user();
+// });
+Route::group(['middleware' => 'api'], function ($routes) {
+    Route::post('register', [UserController::class, 'register']);
+    Route::post('login', [UserController::class, 'login']);
+    Route::post('user', [UserController::class, 'user']);
 });
-Route::post('register', [UserController::class, 'register']);
-Route::post('login', [UserController::class, 'login']);
-Route::resource('vaccine',VaccineController::class);
-Route::post('vaccine/checkAvailablity',[VaccineController::class,'checkAvailablity']);
-Route::post('vaccine/store',[VaccineController::class,'store']);
 
 
-
+// Route::post('register', [UserController::class, 'register']);
+// Route::resource('vaccine', VaccineController::class);
+Route::resource('vaccine', VaccineController::class);
+Route::post('vaccine/checkAvailablity', [VaccineController::class, 'checkAvailablity']);
+Route::post('vaccine/store', [VaccineController::class, 'store']);
+Route::view('noaccess', 'welcome');
