@@ -21,6 +21,6 @@ class Booking extends Authenticatable implements JWTSubject
 
     public function User()
     {
-        return $this->hasMany(User::class);
+        return $this->belongsTo(User::class);
     }
 }

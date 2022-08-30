@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Booking;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Carbon;
 
 class VaccineController extends Controller
 {
@@ -14,15 +15,28 @@ class VaccineController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
+    public function __construct()
+    {
+        $now = date("Y-m-d");
+        $bookings=Booking::all();
+        foreach($bookings as $booking){
+            if($booking->date > $now)
+            $booking->has_expired = 1;
+
+        }
+    }
     public function index(Request $request)
     {
         //
         // dd('hii');
         // dd($request['date']);
+        // dd($now);
         if ($request->date) {
-            $bookings = Booking::where('booking_date', $request->date)->get();
+            $bookings = Booking::where('booking_date', $request->date)->where('has_expired', 0)->join('users', 'users.id', '=', 'bookings.user_id')
+            ->get(['users.*', 'bookings.*']);
         } else
-            $bookings = Booking::all();
+            $bookings = Booking::where('has_expired', 0)->join('users', 'users.id', '=', 'bookings.user_id')
+            ->get(['users.*', 'bookings.*']);
         // dd(count($bookings));
         if (count($bookings))
             return response()->json(['Bookings' => $bookings, 'Status' => 'Success'], 200);
@@ -106,10 +120,10 @@ class VaccineController extends Controller
     {
         //
         // dd(Auth::user()->id);
-        $vaccineslot = Booking::where('user_id', Auth::user()->id)->first();
+        $vaccineslot = Booking::where('user_id', Auth::user()->id)->where('has_expired', 0)->first();
 
         // dd($vaccineslot);
-        return response()->json(['Status' => 'Success', 'Slot' => $vaccineslot]);
+        return response()->json(['Status' => 'Success', 'Slot' => $vaccineslot,'User'=>$vaccineslot->User()->first()]);
     }
 
     /**
@@ -121,7 +135,7 @@ class VaccineController extends Controller
     public function edit($id)
     {
         //
-        $vaccineslot = Booking::find($id);
+        $vaccineslot = Booking::find($id)->where('has_expired', 0);
 
         return response()->json(['Status' => 'Success', 'Booking' => $vaccineslot]);
     }
@@ -141,7 +155,7 @@ class VaccineController extends Controller
         ]);
         if ($validator->fails())
             return response()->json(['errors' => $validator->errors()], 400);
-        $vaccineslot = Booking::find($id);
+        $vaccineslot = Booking::find($id)->where('has_expired', 0);
 
         $vaccineslot->booking_date = $request->date;
         $vaccineslot->save();
@@ -160,7 +174,8 @@ class VaccineController extends Controller
     {
         //
         $vaccineslot = Booking::find($id);
-        $vaccineslot->delete();
+        $vaccineslot->has_expired=1;
+        $vaccineslot->save();
         return response()->json(['Status' => 'Success']);
     }
 }
