@@ -27,12 +27,18 @@ class UserController extends Controller
         ]);
         if ($validator->fails())
             return response()->json(['errors' => $validator->errors()], 400);
-        User::create([
-            'first_name' => $request['name'],
-            'email' => $request['email'],
-            'password' => HASH::make($request['password']),
-        ]);
-        return response()->json(['Success' => 'User Created', 'User' => $request->all()], 200);
+        $user = new User();
+        $user->first_name = $request->name;
+        $user->email = $request->email;
+        $user->password = $request->password;
+        $user->save();
+
+        // User::create([
+        //     'first_name' => $request['name'],
+        //     'email' => $request['email'],
+        //     'password' => HASH::make($request['password']),
+        // ]);
+        return response()->json(['Success' => 'User Created', 'User' => $user], 200);
 
         // return response()->json(['Success' => "done"], 400);
     }
@@ -50,9 +56,10 @@ class UserController extends Controller
             return response()->json(['errors' => $validator->errors()], 400);
 
         $user = user::where('email', $request->email)->first();
+        // dd($validator->validated());
         if (!$token = auth()->attempt($validator->validated()))
             return response()->json(['error' => 'unauthorised']);
-        return $this->returnToken($token);
+        return $this->returnToken($token, $user);
 
         // dd(Hash::make($request['password']));
         // if (!$user) {
@@ -67,12 +74,13 @@ class UserController extends Controller
         // dd($request);
         return response()->json(Auth::user());
     }
-    public function returnToken($token)
+    public function returnToken($token, $user)
     {
         return response()->json([
             'access_token' => $token,
             'token_type' => 'bearer',
-            'expires_in' => 60000
+            'expires_in' => '5-Mins',
+            'user' => $user
         ]);
     }
 }

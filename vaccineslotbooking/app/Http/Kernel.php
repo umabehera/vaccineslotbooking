@@ -44,6 +44,11 @@ class Kernel extends HttpKernel
             'throttle:api',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ],
+        'adminpages' => [
+             \App\Http\Middleware\AdminPages::class,
+
+
+        ],
     ];
 
     /**
@@ -54,6 +59,7 @@ class Kernel extends HttpKernel
      * @var array<string, class-string|string>
      */
     protected $routeMiddleware = [
+        'slotbooking' => \App\Http\Middleware\SlotBooking::class,
         'adminpages' => \App\Http\Middleware\AdminPages::class,
         'auth' => \App\Http\Middleware\Authenticate::class,
         'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,

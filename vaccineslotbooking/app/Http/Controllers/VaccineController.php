@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Booking;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 
 class VaccineController extends Controller
 {
@@ -13,12 +14,20 @@ class VaccineController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
         //
         // dd('hii');
-        $bookings = Booking::all();
-        return response()->json(['Bookings' => $bookings, 'Status' => 'Success'], 200);
+        // dd($request['date']);
+        if ($request->date) {
+            $bookings = Booking::where('booking_date', $request->date)->get();
+        } else
+            $bookings = Booking::all();
+        // dd(count($bookings));
+        if (count($bookings))
+            return response()->json(['Bookings' => $bookings, 'Status' => 'Success'], 200);
+        else
+            return response()->json(['Status' => 'No bookings for the date selected'], 200);
     }
 
     /**
@@ -29,6 +38,8 @@ class VaccineController extends Controller
     public function create()
     {
         //
+        $user = Auth::user();
+        return response()->json(['User' => $user, 200]);
     }
     public function checkAvailablity(request $request)
     {
@@ -44,7 +55,7 @@ class VaccineController extends Controller
         $bookings = Booking::where('booking_date', $date)->get()->count();
         if ($bookings >= 5)
             return response()->json(['Error' => 'No Slots Available For this date! Select Another Date', 'Status' => 'Fail'], 400);
-        return response()->json(['Status' => 'Proceed','Slots Remaining'=> 5-$bookings]);
+        return response()->json(['Status' => 'Proceed', 'Slots Remaining' => 5 - $bookings]);
     }
 
     /**
@@ -65,9 +76,24 @@ class VaccineController extends Controller
         ]);
         if ($validator->fails())
             return response()->json(['errors' => $validator->errors()], 400);
+        $user = Auth::user();
+        // dd(Auth::user());
+        $previous_booking = Booking::where('user_id', $user->id)->first();
+        // dd($previous_booking);
+        if ($previous_booking)
+            return response()->json(['errors' => 'You can only Book One Slot per User'], 400);
+
         $booking = new Booking();
-        $booking->date=$request->date;
-        return response()->json(['status'=>'success'],200);
+        $booking->booking_date = $request->date;
+        $booking->user_id = Auth::user()->id;
+        $booking->save();
+        $user->adhaar_no = $request->adhaar_no;
+        $user->address = $request->address;
+        $user->ph_no = $request->ph_no;
+        $user->last_name = $request->last_name;
+        $user->save();
+
+        return response()->json(['status' => 'success'], 200);
     }
 
     /**
@@ -76,9 +102,14 @@ class VaccineController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show()
     {
         //
+        // dd(Auth::user()->id);
+        $vaccineslot = Booking::where('user_id', Auth::user()->id)->first();
+
+        // dd($vaccineslot);
+        return response()->json(['Status' => 'Success', 'Slot' => $vaccineslot]);
     }
 
     /**
@@ -90,6 +121,9 @@ class VaccineController extends Controller
     public function edit($id)
     {
         //
+        $vaccineslot = Booking::find($id);
+
+        return response()->json(['Status' => 'Success', 'Booking' => $vaccineslot]);
     }
 
     /**
@@ -102,6 +136,18 @@ class VaccineController extends Controller
     public function update(Request $request, $id)
     {
         //
+        $validator = Validator::make($request->all(), [
+            'date' => 'required'
+        ]);
+        if ($validator->fails())
+            return response()->json(['errors' => $validator->errors()], 400);
+        $vaccineslot = Booking::find($id);
+
+        $vaccineslot->booking_date = $request->date;
+        $vaccineslot->save();
+
+
+        return response()->json(['Status' => 'Success']);
     }
 
     /**
@@ -113,5 +159,8 @@ class VaccineController extends Controller
     public function destroy($id)
     {
         //
+        $vaccineslot = Booking::find($id);
+        $vaccineslot->delete();
+        return response()->json(['Status' => 'Success']);
     }
 }

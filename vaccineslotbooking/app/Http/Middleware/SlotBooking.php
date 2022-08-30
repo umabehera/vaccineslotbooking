@@ -4,9 +4,8 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
-class AdminPages
+class SlotBooking
 {
     /**
      * Handle an incoming request.
@@ -15,12 +14,10 @@ class AdminPages
      * @param  \Closure(\Illuminate\Http\Request): (\Illuminate\Http\Response|\Illuminate\Http\RedirectResponse)  $next
      * @return \Illuminate\Http\Response|\Illuminate\Http\RedirectResponse
      */
-    public function handle(Request $request, Closure $next)
+    public function handle(Request $request, Closure $next, $guard = null)
     {
-        // dd(Auth::user()->is_admin);
-        if (!Auth::user()->is_admin)
-            return response()->json(["Error"=>"You are not Authorized to access this page"]);
-
+        if ($guard != null)
+            auth()->shouldUse($guard);
         return $next($request);
     }
 }

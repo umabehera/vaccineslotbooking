@@ -43,6 +43,12 @@ return [
         'api' => [
             'driver' => 'jwt',
             'provider' => 'users',
+            'hash'=>false,
+        ],
+        'slotBooking' => [
+            'driver' => 'jwt',
+            'provider' => 'bookings',
+            'hash'=>false,
         ],
     ],
 
@@ -67,6 +73,10 @@ return [
         'users' => [
             'driver' => 'eloquent',
             'model' => App\Models\User::class,
+        ],
+        'bookings' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\Booking::class,
         ],
 
         // 'users' => [
